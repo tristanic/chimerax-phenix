@@ -1,0 +1,12 @@
+README
+setup.cfg
+ChimeraX_Phenix.egg-info/PKG-INFO
+ChimeraX_Phenix.egg-info/SOURCES.txt
+ChimeraX_Phenix.egg-info/dependency_links.txt
+ChimeraX_Phenix.egg-info/requires.txt
+ChimeraX_Phenix.egg-info/top_level.txt
+src/__init__.py
+src/cmd.py
+src/phenix_bridge.py
+src/phenix_scripts/fit_ligand.py
+src/phenix_scripts/get_cif_restraints.py
