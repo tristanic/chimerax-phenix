@@ -1,0 +1,10 @@
+pyqt-commercial.sip
+.DS_Store
+
+*.dylib
+*.dll
+*.obj
+*.exp
+*.lib
+*.o
+*.o.d
