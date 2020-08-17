@@ -1,15 +1,37 @@
-This directory contains code for generating a sample ChimeraX bundle
-using only an installed ChimeraX application rather than the entire
-ChimeraX source tree.
+Interface to Phenix (https://phenix-online.org) tools in ChimeraX. Under early
+development - the initial plan is to provide a series of ChimeraX command-line
+commands implementing various useful Phenix methods as subprocess calls.
 
-See http://www.cgl.ucsf.edu/chimerax/docs/devel/writing_bundles.html
-for more details on how to build and distribute bundles.
+Building instructions:
 
-NOTE:
+Linux/MacOS or Windows with Cygwin:
 
-setup.py.in and setup.cfg are only present for historical reasons.
-They were used for building bundles before the "devel" command
-was implemented.  They do offer a more powerful alternative for
-experienced programmers (e.g., specifying a license file for
-inclusion in the bundle), which is why we decided not to remove
-them from the example.
+Download and install ChimeraX (1.0 or later)
+Clone this repo and change to the chimerax-phenix directory. If you do:
+
+export RELEASE=1
+
+... then the Makefile will look for ChimeraX in the default installation
+locations:
+
+(Linux) /opt/UCSF/ChimeraX/
+(MacOS) /Applications/ChimeraX.app/
+(Windows) C:\Program Files\ChimeraX\
+
+otherwise it will look for it at:
+
+(Linux) /opt/UCSF/ChimeraX-daily/
+(MacOS) /Applications/ChimeraX_Daily.app/
+(Windows) C:\Program Files\ChimeraX_Daily\
+
+To build, simply do:
+
+make app-install
+
+
+To build in Windows without Cygwin, do:
+
+\path\to\ChimeraX\bin\ChimeraX-console.exe --nogui --cmd "devel install .; exit"
+
+
+On next starting ChimeraX, new commands should be available as "phenix {command} {args}".
