@@ -3,6 +3,7 @@
 from chimerax.core.toolshed import BundleAPI
 
 DEFAULT_MIN_PHENIX_VERSION=3964
+DEV_PHENIX_VERSION=int(1e9)
 
 global _installed_phenix_version
 _installed_phenix_version = -1
@@ -28,7 +29,11 @@ def _parse_version(lines):
     version = -1
     for line in lines:
         if line.startswith('Release'):
-            version = int(line.split(':')[-1].strip())
+            version = line.split(':')[-1].strip()
+            if version.isnumeric():
+                version = int(version)
+            else:
+                version = DEV_PHENIX_VERSION
     return version
 
 def check_for_phenix():
