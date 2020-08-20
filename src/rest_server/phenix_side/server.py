@@ -60,12 +60,68 @@ class ServerMethods:
             cleanup_temp_files()
         return {
             'filename': lf,
-            'already_present': already_present
+        }
+
+    @staticmethod
+    def working_dir():
+        import os
+        return {'dir': os.path.abspath(os.curdir)}
+
+    @staticmethod
+    def fit_ligand(working_dir, map_file, model_file, ligand_restraint_file, ligand_coord_file,
+            resolution=3.0, is_xray_map=False, nproc=4, thoroughness='medium'):
+        from iotbx.data_manager import DataManager
+        from iotbx.map_model_manager import map_model_manager
+        from phenix.model_building import local_model_building
+        import os
+        model_file = model_file.decode('utf-8').encode('ascii')
+        ligand_restraint_file = ligand_restraint_file.decode('utf-8').encode('ascii')
+        ligand_coord_file = ligand_coord_file.decode('utf-8').encode('ascii')
+
+        dm = DataManager()
+        map_manager = dm.get_real_map(map_file)
+        model = dm.get_model(model_file)
+        mam = map_model_manager(map_manager=map_manager, wrapping=False, model=model)
+
+        mam.remove_model_outside_map(boundary=1.5)
+        ligand_model = dm.get_model(ligand_coord_file)
+        dm.process_restraint_file(ligand_restraint_file)
+        ligand_restraints=dm.get_restraint(ligand_restraint_file)
+
+        rlmb = local_model_building(
+            map_model_manager=mam,
+            resolution=resolution,
+            is_xray_map=is_xray_map,
+            nproc=nproc,
+        )
+
+        if is_xray_map:
+            scattering_table = 'n_gaussian'
+        else:
+            scattering_table = 'electron'
+
+        rlmb.set_defaults(
+            scattering_table=scattering_table,
+            thoroughness=thoroughness
+        )
+
+        fitted_ligand_model=rlmb.fit_ligand(
+            ligand_model=ligand_model,
+            restraints_object=ligand_restraints,
+            good_enough_score=0.75,
+        )
+
+        fitted_ligand_filename = os.path.join(working_dir, 'fitted_ligand.pdb')
+        dm.write_model_file(fitted_ligand_model, fitted_ligand_filename, overwrite=True)
+        return {
+            'ligand_file': fitted_ligand_filename,
         }
 
 default_server_methods = {
     'version_info': ServerMethods.phenix_version_info,
     'find_cif_file': ServerMethods.find_cif_file,
+    'working_dir': ServerMethods.working_dir,
+    'fit_ligand': ServerMethods.fit_ligand,
 
 }
 
@@ -173,7 +229,10 @@ class PhenixRESTServer:
                 for i, default_val in enumerate(reversed(defaults)):
                     arg_name = args[-i-1]
                     arg_props = kwarg_dict[arg_name] = dict()
+                    if isinstance(default_val, str):
+                        default_val='"{}"'.format(default_val)
                     arg_props['default'] = default_val
+                    arg_props['type'] = 'unspecified'
             for arg in args[:len(args)-num_defaults]:
                 if arg != 'self':
                     arg_list.append((arg, 'unspecified'))

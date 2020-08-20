@@ -66,6 +66,7 @@ will be displayed without the ChimeraX- prefix.
     <!-- <ChimeraXClassifier>ChimeraX :: Tool :: Sample Tool :: General :: Log model atom and bond counts</ChimeraXClassifier> -->
     <ChimeraXClassifier>ChimeraX :: Command :: phenix connect :: General :: Connect to the Phenix command server.</ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: phenix get restraints :: General :: Get Engh and Huber cif restraints for a ligand.</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: phenix fit ligand :: General :: Fit a ligand into density.</ChimeraXClassifier>
     <ChimeraXClassifier>ChimeraX :: Command :: phenix version :: General :: Report the current Phenix version.</ChimeraXClassifier>
   </Classifiers>
 
