@@ -44,6 +44,7 @@ will be displayed without the ChimeraX- prefix.
 
   <DataFiles>
       <DataDir>phenix_scripts</DataDir>
+      <DataDir>rest_server/phenix_side</DataDir>
   </DataFiles>
 
   <!-- Python and ChimeraX-specific classifiers
@@ -63,7 +64,9 @@ will be displayed without the ChimeraX- prefix.
     <PythonClassifier>Development Status :: 2 - Pre-Alpha</PythonClassifier>
     <PythonClassifier>License :: Free for non-commercial use</PythonClassifier>
     <!-- <ChimeraXClassifier>ChimeraX :: Tool :: Sample Tool :: General :: Log model atom and bond counts</ChimeraXClassifier> -->
-    <ChimeraXClassifier>ChimeraX :: Command :: phenix get restraints :: General :: Commands to interface to Phenix tools</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: phenix connect :: General :: Connect to the Phenix command server.</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: phenix get restraints :: General :: Get Engh and Huber cif restraints for a ligand.</ChimeraXClassifier>
+    <ChimeraXClassifier>ChimeraX :: Command :: phenix version :: General :: Report the current Phenix version.</ChimeraXClassifier>
   </Classifiers>
 
 </BundleInfo>
