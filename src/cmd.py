@@ -3,13 +3,15 @@
 from chimerax.core.commands import CmdDesc, StringArg, IntArg, BoolArg
 from chimerax.atomic import AtomicStructure, AtomicStructuresArg
 
+DEFAULT_PORT=15010
+
 import os
 _base_dir = os.path.dirname(os.path.abspath(__file__))
 
 global restclient
 restclient = None
 
-def phenix_connect(session, address='localhost', port=13010, timeout=300,
+def phenix_connect(session, address='localhost', port=DEFAULT_PORT, timeout=300,
         reconnect=False, warn_if_already_connected=True):
     global restclient
     if not reconnect:

@@ -280,4 +280,4 @@ class SafeTempDir:
 if __name__ == '__main__':
     server = PhenixRESTServer()
     with SafeTempDir():
-        server.run(13010)
+        server.run(15010)
