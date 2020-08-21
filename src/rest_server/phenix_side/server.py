@@ -74,9 +74,6 @@ class ServerMethods:
         from iotbx.map_model_manager import map_model_manager
         from phenix.model_building import local_model_building
         import os
-        model_file = model_file.decode('utf-8').encode('ascii')
-        ligand_restraint_file = ligand_restraint_file.decode('utf-8').encode('ascii')
-        ligand_coord_file = ligand_coord_file.decode('utf-8').encode('ascii')
 
         dm = DataManager()
         map_manager = dm.get_real_map(map_file)
@@ -306,7 +303,16 @@ class RESTHandler(BaseHTTPRequestHandler):
             err_dict = {'error': 'No registered server method with the name {}'.format(func_name)}
             return err_dict
         args = request_dict.get('args', [])
+        # Required because json.loads() turns strings to UTF-8 unicode, but
+        # various Phenix methods can only handle ASCII. Should be able to dump
+        # this once Phenix migrates to Python 3.
+        for i, arg in enumerate(args):
+            if isinstance(arg, unicode):
+                args[i] = arg.decode('utf-8').encode('ascii')
         kwargs = request_dict.get('kwargs', {})
+        for kwarg, val in kwargs.items():
+            if isinstance(val, unicode):
+                kwargs[kwarg] = val.decode('utf-8').encode('ascii')
         return f(*args, **kwargs)
 
 class SafeTempDir:
