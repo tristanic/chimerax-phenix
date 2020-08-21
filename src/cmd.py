@@ -96,6 +96,8 @@ def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residu
     if len(model) != 1:
         raise UserError('"model" must specify a single atomic structure!')
     model = model[0]
+    phenix_get_restraints(session, ligand_id, log_if_present=False)
+    ligand_restraint_file = os.path.join(curdir, '{}_restraints.cif'.format(ligand_id))
     cleanup_ligand_model = False
     if ligand_residue is None:
         cleanup_ligand_model = True
@@ -122,8 +124,6 @@ def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residu
         ligand_model.delete()
 
 
-    phenix_get_restraints(session, ligand_id, log_if_present=False)
-    ligand_restraint_file = os.path.join(curdir, '{}_restraints.cif'.format(ligand_id))
     m = model
     v = volume
     if position is None:
