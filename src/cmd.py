@@ -51,7 +51,7 @@ def phenix_connect(session, address='localhost', port=DEFAULT_PORT, timeout=300,
     if release.isnumeric():
         _phenix_version = int(release)
     else:
-        from .. import DEV_PHENIX_VERSION
+        from . import DEV_PHENIX_VERSION
         _phenix_version = DEV_PHENIX_VERSION
 
 def check_for_needed_phenix_version(session, version):
