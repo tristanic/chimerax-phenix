@@ -85,7 +85,7 @@ phenix_version_desc=CmdDesc(
 
 
 def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residue=None,
-        position=None, radius=20, resolution=3.0):
+        position=None, radius=20, resolution=3.0, is_xray_map=False):
     import numpy, os
     from chimerax.save_command.cmd import provider_save
     from .building import new_residue_from_template
@@ -151,7 +151,7 @@ def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residu
     temp_volume.delete()
     temp_model.delete()
     result = restclient.fit_ligand(curdir, map_file, model_file, ligand_restraint_file, ligand_file,
-        resolution=resolution)
+        resolution=resolution, is_xray_map=is_xray_map)
     from chimerax.open_command.cmd import provider_open
     fitted_ligand_model = provider_open(session, [result['ligand_file']], _add_models=False)[0]
     fitted_ligand_model.atoms.coords += offset
@@ -171,6 +171,7 @@ phenix_fit_ligand_desc=CmdDesc(
         ('position', Float3Arg),
         ('radius', FloatArg),
         ('resolution', FloatArg),
+        ('is_xray_map', BoolArg),
     ]
 )
 
