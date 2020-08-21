@@ -110,6 +110,7 @@ class ServerMethods:
 
         fitted_ligand_filename = os.path.join(working_dir, 'fitted_ligand.pdb')
         dm.write_model_file(fitted_ligand_model, fitted_ligand_filename, overwrite=True)
+        cleanup_temp_files()
         return {
             'ligand_file': fitted_ligand_filename,
         }
