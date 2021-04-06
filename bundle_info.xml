@@ -5,14 +5,14 @@ When uploaded to the ChimeraX toolshed, the bundle
 will be displayed without the ChimeraX- prefix.
 -->
 
-<BundleInfo name="ChimeraX-Phenix" version="0.1" package="chimerax.phenix"
+<BundleInfo name="ChimeraX-Phenix" version="0.2" package="chimerax.phenix"
   	    minSessionVersion="1" maxSessionVersion="1">
 
   <!-- Additional information about bundle source -->
   <Author>Tristan Croll</Author>
   <Email>tic20@cam.ac.uk</Email>
   <URL></URL>
-  <License>license.txt.bsd</License>
+  <License>license.txt</License>
 
   <!-- Synopsis is a one-line description
        Description is a full multi-line description -->
