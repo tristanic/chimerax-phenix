@@ -87,9 +87,7 @@ class ServerMethods:
 
         rlmb = local_model_building(
             map_model_manager=mam,
-            resolution=resolution,
-            is_xray_map=is_xray_map,
-            nproc=nproc,
+           nproc=nproc,
         )
 
         if is_xray_map:
