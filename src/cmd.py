@@ -31,11 +31,10 @@ def get_port(session):
         from .rest_server.server import PhenixServer
         restserver = PhenixServer(session)
         restserver.start()
-        import time
-        time.sleep(0.1)
+        session.logger.info("Started server on port {}".format(restserver.port))
     return restserver.port
 
-def phenix_connect(session, address='localhost', timeout=300,
+def phenix_connect(session, address='localhost', port=None, startup_timeout=2, command_timeout=300,
         reconnect=False, warn_if_already_connected=True):
     global restclient, _phenix_version
     if not reconnect:
@@ -43,22 +42,21 @@ def phenix_connect(session, address='localhost', timeout=300,
             if warn_if_already_connected:
                 session.logger.warning('Phenix REST client is already connected!')
             return
-    port = get_port(session)
-    session.logger.info("Started server on port {}".format(port))
+    if port is None:
+        port = get_port(session)
     from .rest_server import PhenixRESTClient
-    rc = PhenixRESTClient(address, port, timeout=timeout)
-    try:
-        rc.connect()
-    except ConnectionRefusedError:
-        import os
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        err_str = ('It looks like the Phenix server is not running. To get it '
-            'started, run the following command in a separate terminal window '
-            'with the Phenix environment initialised: \n\n'
-            'phenix.python {}'.format(
-                os.path.join(base_dir, 'rest_server','phenix_side', 'server.py')
-            ))
-        raise UserError(err_str)
+    rc = PhenixRESTClient(address, port, timeout=command_timeout)
+    from time import time
+    start_time = time()
+    while time()-start_time < startup_timeout:
+        try:
+            rc.connect()
+            break
+        except ConnectionRefusedError:
+            continue
+    else:
+        raise UserError('Failed to start the Phenix server. Is it still running?')
+
     session.logger.info('Connected to Phenix server on {}:{}'.format(address, port))
     restclient = rc
     version_info = rc.version_info()
