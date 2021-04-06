@@ -345,5 +345,7 @@ class SafeTempDir:
 
 if __name__ == '__main__':
     server = PhenixRESTServer()
+    import sys
+
     with SafeTempDir():
-        server.run(15010)
+        server.run(int(sys.argv[1]))

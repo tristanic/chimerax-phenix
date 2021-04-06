@@ -19,10 +19,23 @@ _base_dir = os.path.dirname(os.path.abspath(__file__))
 global restclient
 restclient = None
 
+global restserver
+restserver = None
+
 global _phenix_version
 _phenix_version = 0
 
-def phenix_connect(session, address='localhost', port=DEFAULT_PORT, timeout=300,
+def get_port(session):
+    global restserver
+    if restserver is None:
+        from .rest_server.server import PhenixServer
+        restserver = PhenixServer(session)
+        restserver.start()
+        import time
+        time.sleep(0.1)
+    return restserver.port
+
+def phenix_connect(session, address='localhost', timeout=300,
         reconnect=False, warn_if_already_connected=True):
     global restclient, _phenix_version
     if not reconnect:
@@ -30,6 +43,8 @@ def phenix_connect(session, address='localhost', port=DEFAULT_PORT, timeout=300,
             if warn_if_already_connected:
                 session.logger.warning('Phenix REST client is already connected!')
             return
+    port = get_port(session)
+    session.logger.info("Started server on port {}".format(port))
     from .rest_server import PhenixRESTClient
     rc = PhenixRESTClient(address, port, timeout=timeout)
     try:
@@ -69,7 +84,6 @@ phenix_connect_desc=CmdDesc(
     synopsis="Initialise the connection to Phenix command server",
     keyword=[
         ('address', StringArg),
-        ('port', IntArg),
         ('timeout', IntArg),
         ('reconnect', BoolArg)
     ]
@@ -101,7 +115,8 @@ def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residu
     cleanup_ligand_model = False
     if ligand_residue is None:
         cleanup_ligand_model = True
-        from chimerax.atomic import AtomicStructure, mmcif
+        from chimerax.atomic import AtomicStructure
+        from chimerax import mmcif
         try:
             tmpl = mmcif.find_template_residue(session, ligand_id)
         except ValueError:
@@ -128,7 +143,8 @@ def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residu
     v = volume
     if position is None:
         position = session.view.center_of_rotation
-    from chimerax.map import data as vd, volume_from_grid_data
+    from chimerax import map_data as vd
+    from chimerax.map import volume_from_grid_data
     subgrid = vd.zone_masked_grid_data(v.data, [position], radius, minimal_bounds=True)
     temp_volume = volume_from_grid_data(subgrid, session, open_model=False)
     offset = v.scene_position.inverse()*numpy.array(temp_volume.data.origin)
