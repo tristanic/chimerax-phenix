@@ -260,7 +260,6 @@ class RESTHandler(BaseHTTPRequestHandler):
         msg = json.dumps(mgr.list_server_methods())
         self.wfile.write(msg.encode('utf-8'))
 
-
     def do_POST(self):
         from cgi import parse_header
         ctype, pdict = parse_header(self.headers.get('content-type'))
@@ -286,9 +285,6 @@ class RESTHandler(BaseHTTPRequestHandler):
             return
         self._set_headers()
         self.wfile.write(json.dumps(return_dict).encode('utf-8'))
-
-
-
 
     def _run_post_job(self, request_dict):
         try:

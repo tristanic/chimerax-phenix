@@ -22,21 +22,29 @@ restclient = None
 global restserver
 restserver = None
 
-global _phenix_version
-_phenix_version = 0
-
 def get_port(session):
     global restserver
+    from .phenix_bridge import settings
     if restserver is None:
         from .rest_server.server import PhenixServer
-        restserver = PhenixServer(session)
+        restserver = PhenixServer(session, settings.phenix_base_path)
         restserver.start()
         session.logger.info("Started server on port {}".format(restserver.port))
     return restserver.port
 
 def phenix_connect(session, address='localhost', port=None, startup_timeout=2, command_timeout=300,
         reconnect=False, warn_if_already_connected=True):
-    global restclient, _phenix_version
+    from chimerax.core.errors import UserError
+    from . import check_for_phenix
+    sufficient, version = check_for_phenix(session)
+    if not sufficient:
+        from .phenix_bridge import settings
+        settings.phenix_base_path = None
+        err_string = f'The ChimeraX-Phenix plugin requires Phenix version {DEFAULT_MIN_PHENIX_VERSION} to be installed.'
+        if version != -1:
+            err_string += f' You have version {version}. Please update your Phenix installation.'
+        raise UserError(err_string)
+    global restclient
     if not reconnect:
         if restclient is not None:
             if warn_if_already_connected:
@@ -67,16 +75,6 @@ def phenix_connect(session, address='localhost', port=None, startup_timeout=2, c
         from . import DEV_PHENIX_VERSION
         _phenix_version = DEV_PHENIX_VERSION
 
-def check_for_needed_phenix_version(session, version):
-    phenix_connect(session, warn_if_already_connected=False)
-    from chimerax.core.errors import UserError
-    if _phenix_version < version:
-        err_str = ('This method requires Phenix version {}, but you have version '
-            '{} installed. Please update your Phenix installation.').format(
-                version, installed_version
-            )
-        raise UserError(err_str)
-
 
 phenix_connect_desc=CmdDesc(
     synopsis="Initialise the connection to Phenix command server",
@@ -104,6 +102,7 @@ def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residu
     phenix_connect(session, warn_if_already_connected=False)
     curdir = os.path.abspath(os.curdir)
     server_dir = restclient.working_dir()['dir']
+    from . import check_for_needed_phenix_version
     check_for_needed_phenix_version(session, DEFAULT_MIN_PHENIX_VERSION)
     if len(model) != 1:
         raise UserError('"model" must specify a single atomic structure!')

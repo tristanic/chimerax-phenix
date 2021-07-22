@@ -55,3 +55,11 @@ class SafeTempDir:
         import os
         os.chdir(self.cwd)
         self._tdmgr.__exit__(exc_type, exc_value, exc_traceback)
+
+from chimerax.core.settings import Settings
+class _PhenixSettings(Settings):
+    AUTO_SAVE = {
+        'phenix_base_path': None,
+    }
+
+settings = None # Set at startup by bundle initialization code _PhenixPluginAPI.initialize()

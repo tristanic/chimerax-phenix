@@ -5,10 +5,12 @@ _MAX_PORT=65535
 
 class PhenixServer(Task):
 
-    def __init__(self, session, retries=5):
+    def __init__(self, session, phenix_base_path, retries=5):
         super().__init__(session)
         self._port = None
         self._retries = retries
+        import os
+        self._phenix_executable = os.path.join(phenix_base_path, 'phenix.python')
     
     @property
     def port(self):
@@ -22,24 +24,20 @@ class PhenixServer(Task):
             except RuntimeError as e:
                 self.session.logger.warning(str(e))
                 continue
-            except FileNotFoundError:
-                self.session.logger.error('Could not find the phenix.python executable. Did you remember to '
-                    'initialise the Phenix environment before starting ChimeraX?')
         else:
-            self.session.logger.warning("Couldn't start Phenix server. Did you remember to initialise the Phenix "
-                "environment before starting ChimeraX?")
+            self.session.logger.warning("Something went wrong starting the Phenix server. Please report this error.")
     
     def _start_server(self):
         import os, subprocess
         curdir = os.path.abspath(os.path.dirname(__file__))
         from random import randint
         port = self._port = randint(_MIN_PORT,_MAX_PORT)
-        cmd_args = ["phenix.python", os.path.join(curdir, "phenix_side", "server.py"), str(port)]
-        pipes = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        std_out, std_err = pipes.communicate()
-        print(std_out.strip())
-        if pipes.returncode != 0:
-            err_message = std_err.strip()
-            raise RuntimeError(err_message)
+        cmd_args = [self._phenix_executable, os.path.join(curdir, "phenix_side", "server.py"), str(port)]
+        pipes = self._pipes = subprocess.Popen(cmd_args)#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #std_out, std_err = pipes.communicate()
+        # print(std_out.strip())
+        # if pipes.returncode != 0:
+        #     err_message = std_err.strip()
+        #     raise RuntimeError(err_message)
 
     

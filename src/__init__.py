@@ -5,24 +5,61 @@ from chimerax.core.toolshed import BundleAPI
 DEFAULT_MIN_PHENIX_VERSION=3964
 DEV_PHENIX_VERSION=int(1e9)
 
-global _installed_phenix_version
+# global _installed_phenix_version
 _installed_phenix_version = -1
-try:
-    _installed_phenix_version = check_for_phenix_version()
-except:
-    pass
+# try:
+#     _installed_phenix_version = check_for_phenix_version()
+# except:
+#     pass
 
-def check_for_phenix_version():
+def _choose_phenix_directory(session):
+    satisfied = False
+    from Qt.QtWidgets import QFileDialog, QMessageBox
+    parent = session.ui.main_window
+    import subprocess, os
+    while not satisfied:
+        result = QFileDialog.getExistingDirectory(parent, 'Please provide the directory containing the Phenix executables.', options=QFileDialog.Options())
+        if not result:
+            break
+        try:
+            subprocess.call([os.path.join(result,'phenix.version')])
+            satisfied = True
+        except FileNotFoundError:
+            choice = QMessageBox.warning(parent, 'This directory does not appear to contain Phenix executables. Would you like to try again?',
+                QMessageBox.Ok|QMessageBox.Cancel)
+        except:
+            raise
+    if not satisfied:
+        from chimerax.core.errors import UserError
+        raise UserError('Could not find Phenix installation. Operation cancelled')
+    return result
+            
+
+        
+    
+
+def check_for_phenix_version(session):
+    global _installed_phenix_version
+    if _installed_phenix_version != -1:
+        return _installed_phenix_version
     from chimerax.core.errors import UserError
     import sys, os, subprocess
-    cmd_args = ["phenix.version"]
+    from .phenix_bridge import settings
+    phenix_path = settings.phenix_base_path
+    if phenix_path is None:
+        phenix_path = _choose_phenix_directory(session)
+        settings.phenix_base_path = phenix_path
+    cmd_args = [os.path.join(phenix_path,"phenix.version")]
     try:
         pipes = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except FileNotFoundError:
-        raise UserError('The Phenix plugin requires Phenix to be installed and on your execution path!')
+        session.logger.warning('Phenix installation appears to have moved or been deleted. Please provide a new path.')
+        settings.phenix_base_path = None
+        return check_for_phenix_version(session)
     std_out, std_err = pipes.communicate()
     lines = [line.strip() for line in std_out.decode('utf-8').split('\n')]
     version = _parse_version(lines)
+    _installed_phenix_version = version
     return version
 
 def _parse_version(lines):
@@ -36,21 +73,14 @@ def _parse_version(lines):
                 version = DEV_PHENIX_VERSION
     return version
 
-def check_for_phenix():
-    version = check_for_phenix_version
-    return version >= DEFAULT_MIN_PHENIX_VERSION
+def check_for_phenix(session):
+    version = check_for_phenix_version(session)
+    return (version >= DEFAULT_MIN_PHENIX_VERSION, version)
 
 def check_for_needed_phenix_version(version):
     global _installed_phenix_version
     from chimerax.core.errors import UserError
-    if _installed_phenix_version != -1:
-        installed_version = _installed_phenix_version
-    else:
-        installed_version = _installed_phenix_version = check_for_phenix_version()
-    if installed_version == -1:
-        raise UserError('An error occurred while trying to determine the installed '
-            'Phenix version. Please update your Phenix installation and make sure '
-            'its environment is initialised before running ChimeraX.')
+    installed_version = _installed_phenix_version
     if installed_version < version:
         err_str = ('This method requires Phenix version {}, but you have version '
             '{} installed. Please update your Phenix installation.').format(
@@ -60,7 +90,7 @@ def check_for_needed_phenix_version(version):
 
 
 
-class _MyAPI(BundleAPI):
+class _PhenixPluginAPI(BundleAPI):
 
     api_version = 1     # register_command called with CommandInfo instance
                         # instead of string
@@ -128,7 +158,8 @@ class _MyAPI(BundleAPI):
     @staticmethod
     def initialize(session, bi):
         # bundle-specific initialization (causes import)
-        raise NotImplementedError     # FIXME: remove method if unneeded
+        from . import phenix_bridge
+        phenix_bridge.settings = phenix_bridge._PhenixSettings(session, 'phenix plugin')
 
     # Override method for finalization function.
     # Only invoked if the custom initialization
@@ -152,4 +183,4 @@ class _MyAPI(BundleAPI):
     #     return None
 
 
-bundle_api = _MyAPI()
+bundle_api = _PhenixPluginAPI()
