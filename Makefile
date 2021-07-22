@@ -44,9 +44,9 @@ endif
 
 ifeq ($(OS),Linux)
 ifndef RELEASE
-CHIMERAX_APP = /opt/UCSF/ChimeraX-daily
+CHIMERAX_EXE = chimerax-daily
 else
-CHIMERAX_APP = /opt/UCSF/ChimeraX
+CHIMERAX_EXE = chimerax
 endif
 endif
 
@@ -61,9 +61,6 @@ endif
 ifeq ($(OS),Darwin)
 CHIMERAX_EXE = $(CHIMERAX_APP)/Contents/bin/ChimeraX
 endif
-ifeq ($(OS),Linux)
-CHIMERAX_EXE = $(CHIMERAX_APP)/bin/ChimeraX
-endif
 
 BUNDLE_BASE_NAME = $(subst ChimeraX-,,$(BUNDLE_NAME))
 SOURCE = src
@@ -77,13 +74,13 @@ SRCS = $(SOURCE)/*.py #$(SOURCE)/*.cpp
 #
 
 wheel $(WHEEL): bundle_info.xml $(SRCS)
-	$(CHIMERAX_EXE) --nogui --cmd "devel build . ; exit"
+	$(CHIMERAX_EXE) --nogui --safemode --cmd "devel build . ; exit"
 
 install app-install:	$(WHEEL)
-	$(CHIMERAX_EXE) --nogui --cmd "devel install . ; exit"
+	$(CHIMERAX_EXE) --nogui --safemode --cmd "devel install . ; exit"
 
 uninstall app-uninstall:	$(WHEEL)
-	$(CHIMERAX_EXE) --nogui --cmd "toolshed uninstall $(BUNDLE_BASE_NAME) ; exit"
+	$(CHIMERAX_EXE) --nogui --safemode --cmd "toolshed uninstall $(BUNDLE_BASE_NAME) ; exit"
 
 docs:
 	$(CHIMERAX_EXE) -m sphinx docs/source src/docs/user
@@ -95,6 +92,6 @@ debug:
 	$(CHIMERAX_EXE) --debug
 
 clean:
-	$(CHIMERAX_EXE) --nogui --cmd "devel clean . ; exit"
+	$(CHIMERAX_EXE) --nogui --safemode --cmd "devel clean . ; exit"
 
 .PHONY: docs
