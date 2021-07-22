@@ -14,15 +14,15 @@ export RELEASE=1
 ... then the Makefile will look for ChimeraX in the default installation
 locations:
 
-(Linux) /opt/UCSF/ChimeraX/
-(MacOS) /Applications/ChimeraX.app/
-(Windows) C:\Program Files\ChimeraX\
+(Linux) chimerax
+(MacOS) /Applications/ChimeraX.app/Contents/bin/Chimerax
+(Windows) C:\Program Files\ChimeraX\bin\Chimerax-console.exe
 
 otherwise it will look for it at:
 
-(Linux) /opt/UCSF/ChimeraX-daily/
-(MacOS) /Applications/ChimeraX_Daily.app/
-(Windows) C:\Program Files\ChimeraX_Daily\
+(Linux) chimerax-daily
+(MacOS) /Applications/ChimeraX_Daily.app/Contents/bin/Chimerax
+(Windows) C:\Program Files\ChimeraX_Daily\bin\Chimerax-console.exe
 
 To build, simply do:
 
