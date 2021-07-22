@@ -130,10 +130,12 @@ class PhenixRESTServer:
     def __init__(self, *args, **kw):
         self.httpd = None
         self._server_methods = {}
+        self.shutdown = False
         self.standard_functions = default_server_methods
 
         for fname, func in self.standard_functions.items():
             self.register_server_method(fname, func)
+        self._server_methods['_terminate'] = self.terminate
         self._server_methods['batch'] = self.batch_run
 
 
@@ -184,13 +186,16 @@ class PhenixRESTServer:
             *httpd.server_address
         )
         print(msg)
-        httpd.serve_forever()
+        while not self.shutdown:
+            httpd.handle_request()
 
     def terminate(self):
-        if self.httpd is not None:
-            self.httpd.shutdown()
-            self.httpd = None
-        super().terminate()
+        self.shutdown = True
+        return {'shutdown': 'Shutting down Phenix server'}
+        # if self.httpd is not None:
+        #     self.httpd.shutdown()
+        #     self.httpd = None
+        # super().terminate()
 
     def register_server_method(self, func_name, func):
         '''
@@ -292,7 +297,8 @@ class RESTHandler(BaseHTTPRequestHandler):
         except KeyError:
             err_dict = {'error': 'You must provide a command name with the key "cmd"!'}
             return err_dict
-        mgr = self.server.manager
+        mgr = self.server.manager            
+
         f = mgr.server_methods.get(func_name, None)
         if f is None:
             err_dict = {'error': 'No registered server method with the name {}'.format(func_name)}

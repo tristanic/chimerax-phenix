@@ -35,6 +35,12 @@ def get_port(session):
 def phenix_connect(session, address='localhost', port=None, startup_timeout=2, command_timeout=300,
         reconnect=False, warn_if_already_connected=True):
     from chimerax.core.errors import UserError
+    global restclient
+    if not reconnect:
+        if restclient is not None and restclient.connected:
+            if warn_if_already_connected:
+                session.logger.warning('Phenix REST client is already connected!')
+            return
     from . import check_for_phenix
     sufficient, version = check_for_phenix(session)
     if not sufficient:
@@ -44,16 +50,17 @@ def phenix_connect(session, address='localhost', port=None, startup_timeout=2, c
         if version != -1:
             err_string += f' You have version {version}. Please update your Phenix installation.'
         raise UserError(err_string)
-    global restclient
-    if not reconnect:
-        if restclient is not None:
-            if warn_if_already_connected:
-                session.logger.warning('Phenix REST client is already connected!')
-            return
+    kill_server_on_app_quit=False
     if port is None:
+        global restserver
+        if restserver is None:
+            # We're starting a server as a subprocess of ChimeraX. Need to make sure it's shut down when ChimeraX closes, otherwise
+            # it'll hang around as a zombie forever.
+            kill_server_on_app_quit=True
         port = get_port(session)
+
     from .rest_server import PhenixRESTClient
-    rc = PhenixRESTClient(address, port, timeout=command_timeout)
+    rc = PhenixRESTClient(session, address, port, timeout=command_timeout, kill_server_on_app_quit=kill_server_on_app_quit)
     from time import time
     start_time = time()
     while time()-start_time < startup_timeout:
@@ -103,7 +110,7 @@ def phenix_fit_ligand(session, model, ligand_id, chain_id, volume, ligand_residu
     curdir = os.path.abspath(os.curdir)
     server_dir = restclient.working_dir()['dir']
     from . import check_for_needed_phenix_version
-    check_for_needed_phenix_version(session, DEFAULT_MIN_PHENIX_VERSION)
+    check_for_needed_phenix_version(DEFAULT_MIN_PHENIX_VERSION)
     if len(model) != 1:
         raise UserError('"model" must specify a single atomic structure!')
     model = model[0]

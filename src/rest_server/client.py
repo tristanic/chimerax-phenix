@@ -14,11 +14,13 @@ class PhenixRESTClient:
     available method names, required/optional arguments and docstrings can be
     obtained with get_available_methods().
     '''
-    def __init__(self, address, port, timeout=20):
+    def __init__(self, session, address, port, timeout=20, kill_server_on_app_quit=True):
         self._address = address
         self._port = port
         self._timeout = timeout
         self._headers = {'Content-type': 'application/json'}
+        if kill_server_on_app_quit:
+            session.triggers.add_handler('app quit', self._terminate_on_app_quit)
 
     def connect(self):
         import sys
@@ -40,6 +42,13 @@ class PhenixRESTClient:
         method_dict = self._get_available_methods()
         self._method_factory(self._get_available_methods())
         return method_dict
+
+    def _terminate_on_app_quit(self, trigger_name, data):
+        ''' 
+        If the Phenix process is still running when ChimeraX quits, kill it.
+        '''
+        if self.connected:
+            self.stop_server()
 
     def _method_factory(self, method_dict):
         import sys
@@ -113,6 +122,10 @@ def {}_server_method(self{}):
                 eval('setattr(cls, fname, {}_server_method)'.format(fname), globals(), locals())
 
 
+    def stop_server(self):
+        if self.connected:
+            self._terminate()
+            self._connection = None
 
     @property
     def connected(self):
